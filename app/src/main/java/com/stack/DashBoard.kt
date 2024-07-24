@@ -58,7 +58,9 @@ class DashBoard : AppCompatActivity() {
             true
         }
         if (savedInstanceState == null) {
-
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment())
+                .commit()
             navigationView.setCheckedItem(R.id.nav_todos);
         }
 
