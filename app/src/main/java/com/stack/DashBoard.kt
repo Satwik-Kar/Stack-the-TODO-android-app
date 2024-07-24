@@ -44,11 +44,11 @@ class DashBoard : AppCompatActivity() {
         val navigationView: NavigationView = findViewById(R.id.navigation_view)
         navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> {
+                R.id.nav_todos -> {
                     // Handle the Home action
                 }
 
-                R.id.nav_profile -> {
+                R.id.nav_notes -> {
                     // Handle the Settings action
                 }
 
@@ -57,6 +57,15 @@ class DashBoard : AppCompatActivity() {
             drawerLayout!!.closeDrawers()
             true
         }
+        if (savedInstanceState == null) {
+
+            navigationView.setCheckedItem(R.id.nav_todos);
+        }
+
+        val menu = navigationView.menu
+        menu.add(R.id.label_grp, 1000, Menu.NONE, "Label 1").setIcon(R.drawable.baseline_label_24).setCheckable(true)
+        menu.add(R.id.label_grp, 1000, Menu.NONE, "Create new label").setIcon(R.drawable.baseline_new_label_24)
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
