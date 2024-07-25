@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="match_parent" android:background="@color/backgroundHome"
     android:layout_height="match_parent"
     tools:context=".HomeFragment">
 
@@ -27,6 +27,7 @@
             android:gravity="center"
             android:inputType="text"
             android:text="Show all"
+            android:textColor="@color/textColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/notesRecyclerView" />
 
@@ -37,7 +38,9 @@
             android:layout_marginTop="32dp"
             android:drawableEnd="@drawable/baseline_arrow_forward_24"
             android:drawablePadding="20sp"
+            android:drawableTint="@color/textColor"
             android:text="Todo Items"
+            android:textColor="@color/textColor"
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTextText" />

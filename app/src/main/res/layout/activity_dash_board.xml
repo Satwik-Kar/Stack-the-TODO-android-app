@@ -4,7 +4,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/backgroundHome"
     tools:context=".DashBoard">
 
     <LinearLayout
@@ -17,14 +17,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/dashboard_toolbar_background"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextColor="@color/textColor" />
 
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             <!-- Your main content goes here -->
-            <FrameLayout android:padding="20sp"
+            <FrameLayout android:padding="10sp"
                 android:id="@+id/fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
