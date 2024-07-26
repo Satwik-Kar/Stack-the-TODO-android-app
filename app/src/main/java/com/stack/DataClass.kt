@@ -4,3 +4,6 @@ import java.util.Date
 
 class Todo(val title: String,val description: String, val dateTime:Date) {
 }
+
+class Note(val title: String,val content: String) {
+}
