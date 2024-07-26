@@ -13,16 +13,17 @@ class DatabaseHelper(context: Context?) :
         val CREATE_NOTE_TABLE = ("CREATE TABLE " + TABLE_NOTE + "("
                 + NOTE_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + NOTE_COLUMN_TITLE + " TEXT,"
-                + NOTE_COLUMN_CONTENT + " TEXT"
+                + NOTE_COLUMN_CONTENT + " TEXT,"
+                + NOTE_COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                 + ")")
         db.execSQL(CREATE_NOTE_TABLE)
-
 
         // Create Todo Table
         val CREATE_TODO_TABLE = ("CREATE TABLE " + TABLE_TODO + "("
                 + TODO_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + TODO_COLUMN_TASK + " TEXT,"
-                + TODO_COLUMN_STATUS + " INTEGER"
+                + TODO_COLUMN_STATUS + " INTEGER,"
+                + TODO_COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                 + ")")
         db.execSQL(CREATE_TODO_TABLE)
     }
@@ -64,6 +65,7 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(NOTE_COLUMN_TITLE, title)
         values.put(NOTE_COLUMN_CONTENT, content)
+        values.put(NOTE_COLUMN_TIMESTAMP, System.currentTimeMillis())
         db.update(TABLE_NOTE, values, NOTE_COLUMN_ID + " = ?", arrayOf(id.toString()))
         db.close()
     }
@@ -100,6 +102,7 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(TODO_COLUMN_TASK, task)
         values.put(TODO_COLUMN_STATUS, status)
+        values.put(TODO_COLUMN_TIMESTAMP, System.currentTimeMillis())
         db.update(TABLE_TODO, values, TODO_COLUMN_ID + " = ?", arrayOf(id.toString()))
         db.close()
     }
@@ -121,12 +124,14 @@ class DatabaseHelper(context: Context?) :
         private const val NOTE_COLUMN_ID = "id"
         private const val NOTE_COLUMN_TITLE = "title"
         private const val NOTE_COLUMN_CONTENT = "content"
+        private const val NOTE_COLUMN_TIMESTAMP = "time_stamp"
 
         // Todo Table
         private const val TABLE_TODO = "todo_table"
         private const val TODO_COLUMN_ID = "id"
         private const val TODO_COLUMN_TASK = "task"
         private const val TODO_COLUMN_STATUS = "status"
+        private const val TODO_COLUMN_TIMESTAMP = "time_stamp"
 
         // User Login Status
         private var isUserLoggedIn = false
