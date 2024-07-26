@@ -13,13 +13,14 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Date
 
 public class HomeFragment : Fragment() {
     private lateinit var fabMain: FloatingActionButton
-    private lateinit var fabAddNote: FloatingActionButton
-    private lateinit var fabAddTodo: FloatingActionButton
+    private lateinit var fabAddNote: ExtendedFloatingActionButton
+    private lateinit var fabAddTodo: ExtendedFloatingActionButton
     private var isFabOpen = false
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
