@@ -11,23 +11,39 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/textVie"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:drawableEnd="@drawable/baseline_arrow_forward_24"
+            android:drawablePadding="20sp"
+            android:drawableTint="@color/textColor"
+            android:text="Notes"
+            android:textColor="@color/textColor"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/notesRecyclerView"
             android:layout_width="0dp"
-            android:layout_height="200sp"
+            android:layout_height="250sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/textVie" />
 
         <TextView
             android:id="@+id/editTextText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:ems="10"
-            android:gravity="center"
+            android:gravity="end"
             android:inputType="text"
             android:text="Show all"
-            android:textColor="@color/textColor"
+            android:textColor="@color/primary"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/notesRecyclerView" />
 
@@ -35,11 +51,11 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="8dp"
             android:drawableEnd="@drawable/baseline_arrow_forward_24"
             android:drawablePadding="20sp"
             android:drawableTint="@color/textColor"
-            android:text="Todo Items"
+            android:text="Todos"
             android:textColor="@color/textColor"
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -47,15 +63,15 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/todosRecyclerView"
-            android:layout_width="409dp"
-            android:layout_height="451dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/floatingActionButton"
+            android:id="@+id/fab_main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="24dp"
@@ -66,6 +82,33 @@
             app:fabSize="auto"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
+        <!-- Small FAB for adding a note -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="34dp"
+            android:layout_marginBottom="130dp"
+            android:clickable="true"
+            android:src="@drawable/baseline_add_24"
+            app:fabSize="mini"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone" />
+
+        <!-- Small FAB for adding a todo -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_todo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="34dp"
+            android:layout_marginBottom="200dp"
+            android:clickable="true"
+            android:src="@drawable/baseline_add_24"
+            app:fabSize="mini"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
