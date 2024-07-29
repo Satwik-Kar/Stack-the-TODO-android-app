@@ -5,6 +5,9 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DatabaseHelper(context: Context?) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -14,7 +17,7 @@ class DatabaseHelper(context: Context?) :
                 + NOTE_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + NOTE_COLUMN_TITLE + " TEXT,"
                 + NOTE_COLUMN_CONTENT + " TEXT,"
-                + NOTE_COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + NOTE_COLUMN_TIMESTAMP + " TEXT"
                 + ")")
         db.execSQL(CREATE_NOTE_TABLE)
 
@@ -23,7 +26,7 @@ class DatabaseHelper(context: Context?) :
                 + TODO_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + TODO_COLUMN_TASK + " TEXT,"
                 + TODO_COLUMN_STATUS + " INTEGER,"
-                + TODO_COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + TODO_COLUMN_TIMESTAMP + " TEXT"
                 + ")")
         db.execSQL(CREATE_TODO_TABLE)
     }
@@ -40,6 +43,12 @@ class DatabaseHelper(context: Context?) :
         // Check if User is Logged In
         get() = Companion.isUserLoggedIn
 
+    fun getCurrentFormattedTimestamp(): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val date = Date()
+        return dateFormat.format(date)
+    }
+
     // Note CRUD Operations
     fun addNote(title: String?, content: String?) {
         if (!this.isUserLoggedIn) return
@@ -47,6 +56,7 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(NOTE_COLUMN_TITLE, title)
         values.put(NOTE_COLUMN_CONTENT, content)
+        values.put(NOTE_COLUMN_TIMESTAMP, getCurrentFormattedTimestamp())
         db.insert(TABLE_NOTE, null, values)
         db.close()
     }
@@ -65,7 +75,7 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(NOTE_COLUMN_TITLE, title)
         values.put(NOTE_COLUMN_CONTENT, content)
-        values.put(NOTE_COLUMN_TIMESTAMP, System.currentTimeMillis())
+        values.put(NOTE_COLUMN_TIMESTAMP, getCurrentFormattedTimestamp())
         db.update(TABLE_NOTE, values, NOTE_COLUMN_ID + " = ?", arrayOf(id.toString()))
         db.close()
     }
@@ -84,6 +94,8 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(TODO_COLUMN_TASK, task)
         values.put(TODO_COLUMN_STATUS, status)
+        values.put(TODO_COLUMN_TIMESTAMP, getCurrentFormattedTimestamp())
+
         db.insert(TABLE_TODO, null, values)
         db.close()
     }
@@ -102,7 +114,7 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(TODO_COLUMN_TASK, task)
         values.put(TODO_COLUMN_STATUS, status)
-        values.put(TODO_COLUMN_TIMESTAMP, System.currentTimeMillis())
+        values.put(TODO_COLUMN_TIMESTAMP, getCurrentFormattedTimestamp())
         db.update(TABLE_TODO, values, TODO_COLUMN_ID + " = ?", arrayOf(id.toString()))
         db.close()
     }
