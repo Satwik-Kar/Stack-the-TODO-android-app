@@ -1,5 +1,6 @@
 package com.stack
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,8 @@ import android.view.animation.AnimationUtils
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,6 +29,7 @@ public class HomeFragment : Fragment() {
     private lateinit var fabClose: Animation
     private lateinit var rotateForward: Animation
     private lateinit var rotateBackward: Animation
+    private lateinit var motionLayout: MotionLayout
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -46,7 +50,7 @@ public class HomeFragment : Fragment() {
         todosRecyclerView.adapter = todoAdapter
         //notes
         val notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
-        val layoutManager = LinearLayoutManager(view.context,LinearLayoutManager.HORIZONTAL,false)
+        val layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         notesRecyclerView.layoutManager = layoutManager
         val notes = listOf<Note>(
             Note("he", "description"), Note("he", "description")
@@ -62,12 +66,15 @@ public class HomeFragment : Fragment() {
         rotateForward = AnimationUtils.loadAnimation(context, R.anim.rotate_forward)
         rotateBackward = AnimationUtils.loadAnimation(context, R.anim.rotate_backward)
 
+
+
         fabMain.setOnClickListener {
             animateFAB()
         }
 
         fabAddNote.setOnClickListener {
-            // Handle add note click
+            val intent = Intent(view.context, EditNoteActivity::class.java)
+            startActivity(intent)
         }
 
         fabAddTodo.setOnClickListener {
@@ -75,6 +82,7 @@ public class HomeFragment : Fragment() {
         }
 
     }
+
     private fun animateFAB() {
         if (isFabOpen) {
             fabMain.startAnimation(rotateBackward)
@@ -96,61 +104,70 @@ public class HomeFragment : Fragment() {
             isFabOpen = true
         }
     }
+
+    class TodoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val title: TextView = itemView.findViewById(R.id.title_todo)
+        val description: TextView = itemView.findViewById(R.id.desc_todo)
+        val dateTime: TextView = itemView.findViewById(R.id.date_todo)
+
+        val image: ImageView = itemView.findViewById(R.id.image_todo)
+
+    }
+
+    inner class TodoAdapter(private var itemList: List<Todo>) :
+        RecyclerView.Adapter<TodoViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
+            val itemView = LayoutInflater.from(parent.context)
+                .inflate(R.layout.todo_items_recycler_layout, parent, false)
+            return TodoViewHolder(itemView)
+        }
+
+        override fun getItemCount(): Int {
+            return itemList.size
+        }
+
+        override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
+            val item = itemList[position]
+            holder.title.text = item.title
+            holder.description.text = item.description
+            holder.dateTime.text = item.dateTime.date.toString()
+        }
+
+    }
+
+    class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val title: TextView = itemView.findViewById(R.id.note_title)
+        val content: TextView = itemView.findViewById(R.id.note_content)
+        val card: CardView = itemView.findViewById(R.id.TODO)
+
+
+    }
+
+    inner class NoteAdapter(private var itemList: List<Note>) :
+        RecyclerView.Adapter<NoteViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
+            val itemView = LayoutInflater.from(parent.context)
+                .inflate(R.layout.note_items_recycler_layout, parent, false)
+            return NoteViewHolder(itemView)
+        }
+
+        override fun getItemCount(): Int {
+            return itemList.size
+        }
+
+        override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
+            val item = itemList[position]
+            holder.title.text = item.title
+            holder.content.text = item.content
+            holder.card.setOnClickListener {
+                val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
+                startActivity(intent)
+
+
+            }
+
+        }
+
+    }
 }
 
-class TodoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val title: TextView = itemView.findViewById(R.id.title_todo)
-    val description: TextView = itemView.findViewById(R.id.desc_todo)
-    val dateTime: TextView = itemView.findViewById(R.id.date_todo)
-
-    val image: ImageView = itemView.findViewById(R.id.image_todo)
-
-}
-
-class TodoAdapter(private var itemList: List<Todo>) : RecyclerView.Adapter<TodoViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.todo_items_recycler_layout, parent, false)
-        return TodoViewHolder(itemView)
-    }
-
-    override fun getItemCount(): Int {
-        return itemList.size
-    }
-
-    override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
-        val item = itemList[position]
-        holder.title.text = item.title
-        holder.description.text = item.description
-        holder.dateTime.text = item.dateTime.date.toString()
-    }
-
-}
-
-class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val title: TextView = itemView.findViewById(R.id.note_title)
-    val content: TextView = itemView.findViewById(R.id.note_content)
-
-
-
-}
-
-class NoteAdapter(private var itemList: List<Note>) : RecyclerView.Adapter<NoteViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.note_items_recycler_layout, parent, false)
-        return NoteViewHolder(itemView)
-    }
-
-    override fun getItemCount(): Int {
-        return itemList.size
-    }
-
-    override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
-        val item = itemList[position]
-        holder.title.text = item.title
-        holder.content.text = item.content
-
-    }
-
-}
