@@ -1,9 +1,14 @@
 package com.stack
 
-import java.util.Date
 
-class Todo(val title: String,val description: String, val dateTime:Date) {
+class Todo(val id: Int, val task: String, val status: String, val timeStamp: String) {
+    companion object{
+
+        val STATUS_PENDING = "pending"
+        val STATUS_DONE = "done"
+
+    }
 }
 
-class Note(val id:Int, val title: String,val content: String,val timeStamp:String) {
+class Note(val id: Int, val title: String, val content: String, val timeStamp: String) {
 }
