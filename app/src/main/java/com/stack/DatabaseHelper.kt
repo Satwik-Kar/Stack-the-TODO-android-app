@@ -132,11 +132,11 @@ class DatabaseHelper(context: Context?) :
         private const val DATABASE_VERSION = 1
 
         // Note Table
-        private const val TABLE_NOTE = "note_table"
-        private const val NOTE_COLUMN_ID = "id"
-        private const val NOTE_COLUMN_TITLE = "title"
-        private const val NOTE_COLUMN_CONTENT = "content"
-        private const val NOTE_COLUMN_TIMESTAMP = "time_stamp"
+        const val TABLE_NOTE = "note_table"
+        const val NOTE_COLUMN_ID = "id"
+        const val NOTE_COLUMN_TITLE = "title"
+        const val NOTE_COLUMN_CONTENT = "content"
+        const val NOTE_COLUMN_TIMESTAMP = "time_stamp"
 
         // Todo Table
         private const val TABLE_TODO = "todo_table"
