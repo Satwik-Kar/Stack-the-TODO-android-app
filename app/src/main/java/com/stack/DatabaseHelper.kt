@@ -88,7 +88,7 @@ class DatabaseHelper(context: Context?) :
     }
 
     // Todo CRUD Operations
-    fun addTodo(task: String?, status: Int) {
+    fun addTodo(task: String?, status: String) {
         if (!this.isUserLoggedIn) return
         val db = this.writableDatabase
         val values = ContentValues()
@@ -139,11 +139,11 @@ class DatabaseHelper(context: Context?) :
         const val NOTE_COLUMN_TIMESTAMP = "time_stamp"
 
         // Todo Table
-        private const val TABLE_TODO = "todo_table"
-        private const val TODO_COLUMN_ID = "id"
-        private const val TODO_COLUMN_TASK = "task"
-        private const val TODO_COLUMN_STATUS = "status"
-        private const val TODO_COLUMN_TIMESTAMP = "time_stamp"
+        const val TABLE_TODO = "todo_table"
+        const val TODO_COLUMN_ID = "id"
+        const val TODO_COLUMN_TASK = "task"
+        const val TODO_COLUMN_STATUS = "status"
+        const val TODO_COLUMN_TIMESTAMP = "time_stamp"
 
         // User Login Status
         private var isUserLoggedIn = false
