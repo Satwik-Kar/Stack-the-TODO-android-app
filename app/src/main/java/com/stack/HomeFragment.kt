@@ -1,13 +1,16 @@
 package com.stack
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.ContactsContract.Data
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
@@ -15,7 +18,7 @@ import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.LayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Date
@@ -40,23 +43,112 @@ public class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //todos
-        val todosRecyclerView = view.findViewById<RecyclerView>(R.id.todosRecyclerView)
-        val todo_layoutManager = LinearLayoutManager(view.context)
-        todosRecyclerView.layoutManager = todo_layoutManager
-        val todos = listOf<Todo>(
-            Todo("he", "description", Date()), Todo("he", "description", Date())
-        )
-        val todoAdapter = TodoAdapter(todos)
-        todosRecyclerView.adapter = todoAdapter
-        //notes
         val notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         notesRecyclerView.layoutManager = layoutManager
-        val notes = listOf<Note>(
-            Note("he", "description"), Note("he", "description")
-        )
+        val todosRecyclerView = view.findViewById<RecyclerView>(R.id.todosRecyclerView)
+        val todoLayoutmanager = LinearLayoutManager(view.context)
+        todosRecyclerView.layoutManager = todoLayoutmanager
+
+        val notes = arrayListOf<Note>()
+        val todos = arrayListOf<Todo>()
+
+        val db = DatabaseHelper(view.context)
+        DatabaseHelper.setUserLoggedIn(true)
+        val notesCursor = db.notes
+        val todosCursor = db.todos
         val noteAdapter = NoteAdapter(notes)
+        val todoAdapter = TodoAdapter(todos)
         notesRecyclerView.adapter = noteAdapter
+        todosRecyclerView.adapter = todoAdapter
+
+        if (notesCursor != null) {
+            if (notesCursor.moveToFirst()) {
+                if (notesCursor.moveToFirst()) {
+                    do { // Use ado-while loop to process all items, including the first
+                        val idIndex = notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_ID)
+                        val titleIndex =
+                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TITLE)
+                        val contentIndex =
+                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_CONTENT)
+                        val timestampIndex =
+                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TIMESTAMP)
+
+                        val id = notesCursor.getInt(idIndex)
+                        val title = notesCursor.getString(titleIndex)
+                        val content = notesCursor.getString(contentIndex)
+                        val timestamp = notesCursor.getString(timestampIndex)
+                        Log.e("TAG", "onViewCreated: $id")
+
+                        notes.add(Note(id, title, content, timestamp))
+
+                    } while (notesCursor.moveToNext())
+                    noteAdapter.notifyDataSetChanged()
+                }
+
+
+            } else {
+                notes.add(
+                    Note(
+                        123,
+                        getString(R.string.demoNoteTitle),
+                        getString(R.string.demoNoteContent),
+                        "timestamp"
+                    )
+                )
+                noteAdapter.notifyDataSetChanged()
+            }
+
+
+        } else {
+            Log.e("TAG", "onViewCreated: " + "No Notes Found")
+
+        }
+
+        if (todosCursor != null) {
+            if (todosCursor.moveToFirst()) {
+                do {
+                    val idIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_ID)
+                    val taskIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_TASK)
+                    val statusIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_STATUS)
+                    val timestampIndex =
+                        todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_TIMESTAMP)
+
+                    val id = todosCursor.getInt(idIndex)
+                    val task = todosCursor.getString(taskIndex)
+                    val status = todosCursor.getString(statusIndex)
+                    val timestamp = todosCursor.getString(timestampIndex)
+                    Log.e("TAG", "onViewCreated: $id")
+
+                    todos.add(Todo(id, task, status, timestamp))
+
+                } while (todosCursor.moveToNext())
+                todoAdapter.notifyDataSetChanged()
+
+
+            } else {
+                todos.add(
+                    Todo(
+                        123,
+                        getString(R.string.demoTodoTask),
+                        Todo.STATUS_DONE,
+                        getString(R.string.demoTodoDateTime)
+                    )
+                )
+                todoAdapter.notifyDataSetChanged()
+            }
+
+
+        } else {
+            Log.e("TAG", "onViewCreated: " + "No Todos Found")
+
+        }
+
+
+
+
+
+
         fabMain = view.findViewById(R.id.fab_main)
         fabAddNote = view.findViewById(R.id.fab_add_note)
         fabAddTodo = view.findViewById(R.id.fab_add_todo)
@@ -78,9 +170,27 @@ public class HomeFragment : Fragment() {
         }
 
         fabAddTodo.setOnClickListener {
-            // Handle add todo click
+            showTaskInputDialog(view.context)
         }
 
+
+    }
+
+    private fun showTaskInputDialog(context: Context) {
+        val builder = MaterialAlertDialogBuilder(context)
+        val view = EditText(context)
+        builder.setTitle("Add Task")
+            .setView(view)
+            .setPositiveButton("Add") { dialog, _ ->
+                val task = view.text.toString()
+                val db = DatabaseHelper(context)
+                DatabaseHelper.setUserLoggedIn(true)
+
+                db.addTodo(task, Todo.STATUS_PENDING)
+
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun animateFAB() {
@@ -106,8 +216,8 @@ public class HomeFragment : Fragment() {
     }
 
     class TodoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val title: TextView = itemView.findViewById(R.id.title_todo)
-        val description: TextView = itemView.findViewById(R.id.desc_todo)
+        val task: TextView = itemView.findViewById(R.id.task_todo)
+        val status: ImageView = itemView.findViewById(R.id.logo_status)
         val dateTime: TextView = itemView.findViewById(R.id.date_todo)
 
         val image: ImageView = itemView.findViewById(R.id.image_todo)
@@ -128,9 +238,15 @@ public class HomeFragment : Fragment() {
 
         override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
             val item = itemList[position]
-            holder.title.text = item.title
-            holder.description.text = item.description
-            holder.dateTime.text = item.dateTime.date.toString()
+            holder.task.text = item.task
+            if (item.status == Todo.STATUS_PENDING) {
+                holder.status.setImageResource(R.drawable.baseline_pending_actions_24)
+
+            } else if (item.status == Todo.STATUS_DONE) {
+                holder.status.setImageResource(R.drawable.baseline_done_outline_24)
+
+            }
+            holder.dateTime.text = item.timeStamp
         }
 
     }
