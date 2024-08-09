@@ -15,13 +15,19 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Collections
 import java.util.Date
+import java.util.Locale
 
 public class HomeFragment : Fragment() {
     private lateinit var fabMain: FloatingActionButton
@@ -32,7 +38,7 @@ public class HomeFragment : Fragment() {
     private lateinit var fabClose: Animation
     private lateinit var rotateForward: Animation
     private lateinit var rotateBackward: Animation
-    private lateinit var motionLayout: MotionLayout
+    private lateinit var constraintLayout: ConstraintLayout
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -42,12 +48,14 @@ public class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         //todos
         val notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         notesRecyclerView.layoutManager = layoutManager
         val todosRecyclerView = view.findViewById<RecyclerView>(R.id.todosRecyclerView)
-        val todoLayoutmanager = LinearLayoutManager(view.context)
+        val todoLayoutmanager =
+            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         todosRecyclerView.layoutManager = todoLayoutmanager
 
         val notes = arrayListOf<Note>()
@@ -83,6 +91,7 @@ public class HomeFragment : Fragment() {
                         notes.add(Note(id, title, content, timestamp))
 
                     } while (notesCursor.moveToNext())
+                    notes.sort()
                     noteAdapter.notifyDataSetChanged()
                 }
 
@@ -123,6 +132,7 @@ public class HomeFragment : Fragment() {
                     todos.add(Todo(id, task, status, timestamp))
 
                 } while (todosCursor.moveToNext())
+                todos.sort()
                 todoAdapter.notifyDataSetChanged()
 
 
@@ -215,6 +225,43 @@ public class HomeFragment : Fragment() {
         }
     }
 
+    private fun formatTimestamp(timeStamp: String): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val date = dateFormat.parse(timeStamp)
+
+        val calendar = Calendar.getInstance()
+        val currentCalendar = Calendar.getInstance()
+        val yesterdayCalendar = Calendar.getInstance()
+
+        currentCalendar.time = Date()
+
+        // Set yesterday's date
+        yesterdayCalendar.time = Date()
+        yesterdayCalendar.add(Calendar.DATE, -1)
+
+        calendar.time = date
+
+        return when {
+            // Check if the date is today
+            currentCalendar.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+                    currentCalendar.get(Calendar.DAY_OF_YEAR) == calendar.get(Calendar.DAY_OF_YEAR) -> {
+                val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+                "Today, ${timeFormat.format(date!!)}"
+            }
+
+            yesterdayCalendar.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+                    yesterdayCalendar.get(Calendar.DAY_OF_YEAR) == calendar.get(Calendar.DAY_OF_YEAR) -> {
+                val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+                "Yesterday, ${timeFormat.format(date!!)}"
+            }
+
+            else -> {
+                val dateFormatOutput = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+                dateFormatOutput.format(date!!)
+            }
+        }
+    }
+
     class TodoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val task: TextView = itemView.findViewById(R.id.task_todo)
         val status: ImageView = itemView.findViewById(R.id.logo_status)
@@ -246,7 +293,7 @@ public class HomeFragment : Fragment() {
                 holder.status.setImageResource(R.drawable.baseline_done_outline_24)
 
             }
-            holder.dateTime.text = item.timeStamp
+            holder.dateTime.text = formatTimestamp(item.timeStamp)
         }
 
     }
@@ -255,6 +302,7 @@ public class HomeFragment : Fragment() {
         val title: TextView = itemView.findViewById(R.id.note_title)
         val content: TextView = itemView.findViewById(R.id.note_content)
         val card: CardView = itemView.findViewById(R.id.TODO)
+        val constraintLayout = itemView.findViewById<ConstraintLayout>(R.id.constraint)
 
 
     }
@@ -272,8 +320,29 @@ public class HomeFragment : Fragment() {
         }
 
         override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
+
             val item = itemList[position]
-            holder.title.text = item.title
+            if (item.title.isNotEmpty()) {
+                holder.title.text = item.title
+
+            } else {
+                val constraintSet = ConstraintSet()
+                // Clone the existing layout
+                constraintSet.clone(holder.constraintLayout)
+
+                // Change the constraint
+                constraintSet.connect(
+                    R.id.note_content,
+                    ConstraintSet.TOP,
+                    R.id.constraint,
+                    ConstraintSet.TOP,
+                    16
+                )
+
+                // Apply the changes to the ConstraintLayout
+                constraintSet.applyTo(holder.constraintLayout)
+
+            }
             holder.content.text = item.content
             holder.card.setOnClickListener {
                 val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
