@@ -1,23 +1,29 @@
 package com.stack
 
+
 import android.content.Context
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.provider.ContactsContract.Data
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -25,14 +31,21 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Collections
 import java.util.Date
 import java.util.Locale
+
 
 public class HomeFragment : Fragment() {
     private lateinit var fabMain: FloatingActionButton
     private lateinit var fabAddNote: ExtendedFloatingActionButton
     private lateinit var fabAddTodo: ExtendedFloatingActionButton
+
+    private lateinit var filterAll: Button
+    private lateinit var filterDone: Button
+    private lateinit var filterPending: Button
+
+    private var filter = -1
+
     private var isFabOpen = false
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
@@ -48,7 +61,11 @@ public class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        filterPending = view.findViewById(R.id.filter_pending)
+        filterDone = view.findViewById(R.id.filter_done)
+        filterAll = view.findViewById(R.id.filter_all)
+        filterAll.setBackgroundColor(resources.getColor(R.color.primary))
+        filterAll.setTextColor(resources.getColor(android.R.color.white))
         //todos
         val notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
@@ -181,6 +198,159 @@ public class HomeFragment : Fragment() {
 
         fabAddTodo.setOnClickListener {
             showTaskInputDialog(view.context)
+        }
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            0, // Drag directions (not used in this case)
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT // Swipe directions
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false // Not handling drag and drop in this example
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                Log.e("posi", "onSwiped: $position")
+                when (direction) {
+                    ItemTouchHelper.LEFT -> {
+
+                        todoAdapter.notifyItemRemoved(position)
+                    }
+
+                    ItemTouchHelper.RIGHT -> {
+
+                        val db = DatabaseHelper(view.context)
+                        val todo = todos[position]
+                        db.updateTodo(todo.id, todo.task, Todo.STATUS_DONE)
+                        todos.removeAt(position)
+                        todoAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+
+                val itemView = viewHolder.itemView
+                val backgroundColor: Int
+                val icon: Drawable?
+
+                if (dX > 0) { // Swiping to the right
+                    backgroundColor = ContextCompat.getColor(
+                        activity!!.applicationContext,
+                        R.color.todoDone
+                    ) // Green color
+                    icon = ContextCompat.getDrawable(
+                        view.context,
+                        R.drawable.baseline_done_outline_24
+                    )
+                } else { // Swiping to the left
+                    backgroundColor = Color.parseColor("#D32F2F") // Red color
+                    icon = ContextCompat.getDrawable(
+                        view.context,
+                        R.drawable.baseline_delete_outline_24
+                    )
+                }
+
+                // Draw background color
+                val paint = Paint()
+                paint.color = backgroundColor
+
+                if (dX > 0) { // Right swipe
+                    c.drawRect(
+                        itemView.left.toFloat(), itemView.top.toFloat(),
+                        dX, itemView.bottom.toFloat(), paint
+                    )
+                } else { // Left swipe
+                    c.drawRect(
+                        itemView.right.toFloat() + dX, itemView.top.toFloat(),
+                        itemView.right.toFloat(), itemView.bottom.toFloat(), paint
+                    )
+                }
+
+                // Calculate position of the icon
+                val itemHeight = itemView.height
+                val iconMargin = (itemHeight - icon!!.intrinsicHeight) / 2
+                val iconTop = itemView.top + iconMargin
+                val iconBottom = iconTop + icon!!.intrinsicHeight
+
+                if (dX > 0) { // Right swipe
+                    val iconLeft = itemView.left + iconMargin
+                    val iconRight = iconLeft + icon!!.intrinsicWidth
+                    icon!!.setBounds(iconLeft, iconTop, iconRight, iconBottom)
+                } else if (dX < 0) { // Left swipe
+                    val iconRight = itemView.right - iconMargin
+                    val iconLeft = iconRight - icon!!.intrinsicWidth
+                    icon!!.setBounds(iconLeft, iconTop, iconRight, iconBottom)
+                }
+
+                // Draw the icon
+                icon!!.draw(c)
+            }
+
+
+        }
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(todosRecyclerView)
+
+
+        filterAll.setOnClickListener {
+
+
+            todosRecyclerView.adapter = TodoAdapter(todos)
+
+
+
+            filterAll.setBackgroundColor(resources.getColor(R.color.primary))
+            filterAll.setTextColor(resources.getColor(android.R.color.white))
+            filterDone.setBackgroundColor(resources.getColor(R.color.primarySurface))
+            filterDone.setTextColor(resources.getColor(android.R.color.black))
+            filterPending.setBackgroundColor(resources.getColor(R.color.primarySurface))
+            filterPending.setTextColor(resources.getColor(android.R.color.black))
+
+        }
+        filterDone.setOnClickListener {
+            val filtered = todos.filter { it.status == Todo.STATUS_DONE }
+            todosRecyclerView.adapter = TodoAdapter(filtered)
+
+
+            filterAll.setBackgroundColor(resources.getColor(R.color.primarySurface))
+            filterAll.setTextColor(resources.getColor(android.R.color.black))
+            filterDone.setBackgroundColor(resources.getColor(R.color.primary))
+            filterDone.setTextColor(resources.getColor(android.R.color.white))
+            filterPending.setBackgroundColor(resources.getColor(R.color.primarySurface))
+            filterPending.setTextColor(resources.getColor(android.R.color.black))
+        }
+        filterPending.setOnClickListener {
+
+            val filtered = todos.filter { it.status == Todo.STATUS_PENDING }
+            todosRecyclerView.adapter = TodoAdapter(filtered)
+
+            filterAll.setBackgroundColor(resources.getColor(R.color.primarySurface))
+            filterAll.setTextColor(resources.getColor(android.R.color.black))
+            filterDone.setBackgroundColor(resources.getColor(R.color.primarySurface))
+            filterDone.setTextColor(resources.getColor(android.R.color.black))
+            filterPending.setBackgroundColor(resources.getColor(R.color.primary))
+            filterPending.setTextColor(resources.getColor(android.R.color.white))
         }
 
 
@@ -354,5 +524,6 @@ public class HomeFragment : Fragment() {
         }
 
     }
+
 }
 
