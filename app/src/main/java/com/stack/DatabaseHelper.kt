@@ -108,7 +108,7 @@ class DatabaseHelper(context: Context?) :
             return db.rawQuery(query, null)
         }
 
-    fun updateTodo(id: Int, task: String?, status: Int) {
+    fun updateTodo(id: Int, task: String?, status: String) {
         if (!this.isUserLoggedIn) return
         val db = this.writableDatabase
         val values = ContentValues()
