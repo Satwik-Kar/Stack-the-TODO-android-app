@@ -44,14 +44,24 @@ public class HomeFragment : Fragment() {
     private lateinit var filterDone: Button
     private lateinit var filterPending: Button
 
-    private var filter = -1
+    private lateinit var todos: ArrayList<Todo>
+    private lateinit var notes: ArrayList<Note>
 
     private var isFabOpen = false
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
     private lateinit var rotateForward: Animation
     private lateinit var rotateBackward: Animation
-    private lateinit var constraintLayout: ConstraintLayout
+    private lateinit var notesRecyclerView: RecyclerView
+    private lateinit var todosRecyclerView: RecyclerView
+    private lateinit var todoAdapter: TodoAdapter
+    private lateinit var noteAdapter: NoteAdapter
+
+    override fun onResume() {
+        super.onResume()
+        refreshLayout()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -66,114 +76,14 @@ public class HomeFragment : Fragment() {
         filterAll = view.findViewById(R.id.filter_all)
         filterAll.setBackgroundColor(resources.getColor(R.color.primary))
         filterAll.setTextColor(resources.getColor(android.R.color.white))
-        //todos
-        val notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
+
+        notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         notesRecyclerView.layoutManager = layoutManager
-        val todosRecyclerView = view.findViewById<RecyclerView>(R.id.todosRecyclerView)
+        todosRecyclerView = view.findViewById<RecyclerView>(R.id.todosRecyclerView)
         val todoLayoutmanager =
             LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         todosRecyclerView.layoutManager = todoLayoutmanager
-
-        val notes = arrayListOf<Note>()
-        val todos = arrayListOf<Todo>()
-
-        val db = DatabaseHelper(view.context)
-        DatabaseHelper.setUserLoggedIn(true)
-        val notesCursor = db.notes
-        val todosCursor = db.todos
-        val noteAdapter = NoteAdapter(notes)
-        val todoAdapter = TodoAdapter(todos)
-        notesRecyclerView.adapter = noteAdapter
-        todosRecyclerView.adapter = todoAdapter
-
-        if (notesCursor != null) {
-            if (notesCursor.moveToFirst()) {
-                if (notesCursor.moveToFirst()) {
-                    do { // Use ado-while loop to process all items, including the first
-                        val idIndex = notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_ID)
-                        val titleIndex =
-                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TITLE)
-                        val contentIndex =
-                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_CONTENT)
-                        val timestampIndex =
-                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TIMESTAMP)
-
-                        val id = notesCursor.getInt(idIndex)
-                        val title = notesCursor.getString(titleIndex)
-                        val content = notesCursor.getString(contentIndex)
-                        val timestamp = notesCursor.getString(timestampIndex)
-                        Log.e("TAG", "onViewCreated: $id")
-
-                        notes.add(Note(id, title, content, timestamp))
-
-                    } while (notesCursor.moveToNext())
-                    notes.sort()
-                    noteAdapter.notifyDataSetChanged()
-                }
-
-
-            } else {
-                notes.add(
-                    Note(
-                        123,
-                        getString(R.string.demoNoteTitle),
-                        getString(R.string.demoNoteContent),
-                        "timestamp"
-                    )
-                )
-                noteAdapter.notifyDataSetChanged()
-            }
-
-
-        } else {
-            Log.e("TAG", "onViewCreated: " + "No Notes Found")
-
-        }
-
-        if (todosCursor != null) {
-            if (todosCursor.moveToFirst()) {
-                do {
-                    val idIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_ID)
-                    val taskIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_TASK)
-                    val statusIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_STATUS)
-                    val timestampIndex =
-                        todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_TIMESTAMP)
-
-                    val id = todosCursor.getInt(idIndex)
-                    val task = todosCursor.getString(taskIndex)
-                    val status = todosCursor.getString(statusIndex)
-                    val timestamp = todosCursor.getString(timestampIndex)
-                    Log.e("TAG", "onViewCreated: $id")
-
-                    todos.add(Todo(id, task, status, timestamp))
-
-                } while (todosCursor.moveToNext())
-                todos.sort()
-                todoAdapter.notifyDataSetChanged()
-
-
-            } else {
-                todos.add(
-                    Todo(
-                        123,
-                        getString(R.string.demoTodoTask),
-                        Todo.STATUS_DONE,
-                        getString(R.string.demoTodoDateTime)
-                    )
-                )
-                todoAdapter.notifyDataSetChanged()
-            }
-
-
-        } else {
-            Log.e("TAG", "onViewCreated: " + "No Todos Found")
-
-        }
-
-
-
-
 
 
         fabMain = view.findViewById(R.id.fab_main)
@@ -291,20 +201,20 @@ public class HomeFragment : Fragment() {
                 val itemHeight = itemView.height
                 val iconMargin = (itemHeight - icon!!.intrinsicHeight) / 2
                 val iconTop = itemView.top + iconMargin
-                val iconBottom = iconTop + icon!!.intrinsicHeight
+                val iconBottom = iconTop + icon.intrinsicHeight
 
                 if (dX > 0) { // Right swipe
                     val iconLeft = itemView.left + iconMargin
-                    val iconRight = iconLeft + icon!!.intrinsicWidth
-                    icon!!.setBounds(iconLeft, iconTop, iconRight, iconBottom)
+                    val iconRight = iconLeft + icon.intrinsicWidth
+                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                 } else if (dX < 0) { // Left swipe
                     val iconRight = itemView.right - iconMargin
-                    val iconLeft = iconRight - icon!!.intrinsicWidth
-                    icon!!.setBounds(iconLeft, iconTop, iconRight, iconBottom)
+                    val iconLeft = iconRight - icon.intrinsicWidth
+                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                 }
 
                 // Draw the icon
-                icon!!.draw(c)
+                icon.draw(c)
             }
 
 
@@ -356,6 +266,106 @@ public class HomeFragment : Fragment() {
 
     }
 
+    private fun refreshLayout() {
+
+        notes = arrayListOf()
+        todos = arrayListOf()
+        val db = DatabaseHelper(requireView().context)
+        DatabaseHelper.setUserLoggedIn(true)
+        val notesCursor = db.notes
+        val todosCursor = db.todos
+        val noteAdapter = NoteAdapter(notes)
+        val todoAdapter = TodoAdapter(todos)
+        notesRecyclerView.adapter = noteAdapter
+        todosRecyclerView.adapter = todoAdapter
+
+        if (notesCursor != null) {
+            if (notesCursor.moveToFirst()) {
+                if (notesCursor.moveToFirst()) {
+                    do { // Use ado-while loop to process all items, including the first
+                        val idIndex = notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_ID)
+                        val titleIndex =
+                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TITLE)
+                        val contentIndex =
+                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_CONTENT)
+                        val timestampIndex =
+                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TIMESTAMP)
+
+                        val id = notesCursor.getInt(idIndex)
+                        val title = notesCursor.getString(titleIndex)
+                        val content = notesCursor.getString(contentIndex)
+                        val timestamp = notesCursor.getString(timestampIndex)
+                        Log.e("TAG", "onViewCreated: $id")
+
+                        notes.add(Note(id, title, content, timestamp))
+
+                    } while (notesCursor.moveToNext())
+                    notes.sort()
+                    noteAdapter.notifyDataSetChanged()
+                }
+
+
+            } else {
+                notes.add(
+                    Note(
+                        123,
+                        getString(R.string.demoNoteTitle),
+                        getString(R.string.demoNoteContent),
+                        "timestamp"
+                    )
+                )
+                noteAdapter.notifyDataSetChanged()
+            }
+
+
+        } else {
+            Log.e("TAG", "onViewCreated: " + "No Notes Found")
+
+        }
+
+        if (todosCursor != null) {
+            if (todosCursor.moveToFirst()) {
+                do {
+                    val idIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_ID)
+                    val taskIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_TASK)
+                    val statusIndex = todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_STATUS)
+                    val timestampIndex =
+                        todosCursor.getColumnIndex(DatabaseHelper.TODO_COLUMN_TIMESTAMP)
+
+                    val id = todosCursor.getInt(idIndex)
+                    val task = todosCursor.getString(taskIndex)
+                    val status = todosCursor.getString(statusIndex)
+                    val timestamp = todosCursor.getString(timestampIndex)
+                    Log.e("TAG", "onViewCreated: $id")
+
+                    todos.add(Todo(id, task, status, timestamp))
+
+                } while (todosCursor.moveToNext())
+                todos.sort()
+                todoAdapter.notifyDataSetChanged()
+
+
+            } else {
+                todos.add(
+                    Todo(
+                        123,
+                        getString(R.string.demoTodoTask),
+                        Todo.STATUS_DONE,
+                        getString(R.string.demoTodoDateTime)
+                    )
+                )
+                todoAdapter.notifyDataSetChanged()
+            }
+
+
+        } else {
+            Log.e("TAG", "onViewCreated: " + "No Todos Found")
+
+        }
+
+
+    }
+
     private fun showTaskInputDialog(context: Context) {
         val builder = MaterialAlertDialogBuilder(context)
         val view = EditText(context)
@@ -367,6 +377,8 @@ public class HomeFragment : Fragment() {
                 DatabaseHelper.setUserLoggedIn(true)
 
                 db.addTodo(task, Todo.STATUS_PENDING)
+
+                refreshLayout()
 
             }
             .setNegativeButton("Cancel", null)
