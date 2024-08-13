@@ -6,5 +6,6 @@
     <color name="primary">#6D4190</color>
     <color name="primarySurface">#ECE2EE</color>
     <color name="backgroundHome">#fff</color>
+    <color name="todoDone">#6295ED</color>
 
 </resources>
