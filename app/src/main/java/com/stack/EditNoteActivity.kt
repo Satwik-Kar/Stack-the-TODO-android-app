@@ -2,9 +2,7 @@ package com.stack
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -17,7 +15,8 @@ class EditNoteActivity : AppCompatActivity() {
     private var noteId by Delegates.notNull<Int>()
     private var noteContent: String? = null
     private var noteTitle: String? = null
-    private var noteTimeStamp: String? = null
+    private var noteTimeStampCreated: String? = null
+    private var noteTimeStampUpdated: String? = null
     private lateinit var editTitle: EditText
     private lateinit var editNote: EditText
 
@@ -42,7 +41,8 @@ class EditNoteActivity : AppCompatActivity() {
         noteId = intent.getIntExtra("note_id", -1)
         noteContent = intent.getStringExtra("note_content")
         noteTitle = intent.getStringExtra("note_title")
-        noteTimeStamp = intent.getStringExtra("note_timestamp")
+        noteTimeStampCreated = intent.getStringExtra("note_timestamp_created")
+        noteTimeStampUpdated = intent.getStringExtra("note_timestamp_updated")
 
         Log.e("debug", "onCreate: $noteTitle $noteContent")
         editTitle = findViewById(R.id.edit_title)
@@ -69,7 +69,7 @@ class EditNoteActivity : AppCompatActivity() {
     private fun saveNote(): Unit {
         val noteTitle = findViewById<EditText>(R.id.edit_title)
         val noteContent = findViewById<EditText>(R.id.edit_note)
-        if ((noteTitle.text != null || noteContent.text != null) && (noteId != -1)) {
+        if ((editTitle.text != null || editNote.text != null)) {
             val database = DatabaseHelper(this@EditNoteActivity)
             DatabaseHelper.setUserLoggedIn(true)
 
@@ -79,6 +79,8 @@ class EditNoteActivity : AppCompatActivity() {
                 database.addNote(noteTitle.text.toString(), noteContent.text.toString())
             }
 
+        } else {
+            Log.e("tag", "saveNote: illegal")
         }
     }
 
