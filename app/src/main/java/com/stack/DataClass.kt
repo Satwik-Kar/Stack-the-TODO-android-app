@@ -8,7 +8,7 @@ import java.util.Date
 import java.util.Locale
 
 
-class Todo(val id: Int, val task: String, val status: String, val timeStamp: String) :
+class Todo(val id: Int, val task: String, var status: String, val timeStamp: String) :
     Comparable<Todo> {
     companion object {
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
