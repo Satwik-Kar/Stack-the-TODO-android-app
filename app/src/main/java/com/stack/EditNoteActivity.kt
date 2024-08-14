@@ -69,7 +69,7 @@ class EditNoteActivity : AppCompatActivity() {
     private fun saveNote(): Unit {
         val noteTitle = findViewById<EditText>(R.id.edit_title)
         val noteContent = findViewById<EditText>(R.id.edit_note)
-        if ((editTitle.text != null || editNote.text != null)) {
+        if ((editTitle.text.isNotEmpty() || editNote.text.isNotEmpty())) {
             val database = DatabaseHelper(this@EditNoteActivity)
             DatabaseHelper.setUserLoggedIn(true)
 
