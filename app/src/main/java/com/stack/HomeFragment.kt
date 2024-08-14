@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -135,8 +136,8 @@ public class HomeFragment : Fragment() {
                         val db = DatabaseHelper(view.context)
                         val todo = todos[position]
                         db.updateTodo(todo.id, todo.task, Todo.STATUS_DONE)
-                        todos.removeAt(position)
-                        todoAdapter.notifyDataSetChanged()
+                        todos[position].status = Todo.STATUS_DONE
+                        todoAdapter.notifyItemRemoved(position)
                     }
                 }
             }
@@ -150,39 +151,33 @@ public class HomeFragment : Fragment() {
                 actionState: Int,
                 isCurrentlyActive: Boolean
             ) {
-                super.onChildDraw(
-                    c,
-                    recyclerView,
-                    viewHolder,
-                    dX,
-                    dY,
-                    actionState,
-                    isCurrentlyActive
-                )
-
                 val itemView = viewHolder.itemView
+                val paint = Paint()
+
+                // Clear the canvas with the default background color
+                c.drawColor(Color.TRANSPARENT)
+
                 val backgroundColor: Int
                 val icon: Drawable?
 
                 if (dX > 0) { // Swiping to the right
                     backgroundColor = ContextCompat.getColor(
-                        activity!!.applicationContext,
+                        recyclerView.context,
                         R.color.todoDone
                     ) // Green color
                     icon = ContextCompat.getDrawable(
-                        view.context,
+                        recyclerView.context,
                         R.drawable.baseline_done_outline_24
                     )
                 } else { // Swiping to the left
                     backgroundColor = Color.parseColor("#D32F2F") // Red color
                     icon = ContextCompat.getDrawable(
-                        view.context,
+                        recyclerView.context,
                         R.drawable.baseline_delete_outline_24
                     )
                 }
 
-                // Draw background color
-                val paint = Paint()
+                // Draw the background color
                 paint.color = backgroundColor
 
                 if (dX > 0) { // Right swipe
@@ -197,7 +192,7 @@ public class HomeFragment : Fragment() {
                     )
                 }
 
-                // Calculate position of the icon
+                // Calculate the position of the icon
                 val itemHeight = itemView.height
                 val iconMargin = (itemHeight - icon!!.intrinsicHeight) / 2
                 val iconTop = itemView.top + iconMargin
@@ -215,6 +210,9 @@ public class HomeFragment : Fragment() {
 
                 // Draw the icon
                 icon.draw(c)
+
+                // Reset translation to avoid leaving the black background
+                itemView.translationX = dX
             }
 
 
@@ -274,8 +272,8 @@ public class HomeFragment : Fragment() {
         DatabaseHelper.setUserLoggedIn(true)
         val notesCursor = db.notes
         val todosCursor = db.todos
-        val noteAdapter = NoteAdapter(notes)
-        val todoAdapter = TodoAdapter(todos)
+        noteAdapter = NoteAdapter(notes)
+        todoAdapter = TodoAdapter(todos)
         notesRecyclerView.adapter = noteAdapter
         todosRecyclerView.adapter = todoAdapter
 
@@ -368,6 +366,7 @@ public class HomeFragment : Fragment() {
 
     private fun showTaskInputDialog(context: Context) {
         val builder = MaterialAlertDialogBuilder(context)
+        builder.setCancelable(false)
         val view = EditText(context)
         builder.setTitle("Add Task")
             .setView(view)
@@ -383,6 +382,11 @@ public class HomeFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+        view.post {
+            view.requestFocus()
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     private fun animateFAB() {
@@ -528,6 +532,11 @@ public class HomeFragment : Fragment() {
             holder.content.text = item.content
             holder.card.setOnClickListener {
                 val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
+                intent.putExtra("note_id", item.id)
+                intent.putExtra("note_content", item.content)
+                intent.putExtra("note_title", item.title)
+                intent.putExtra("note_timestamp", item.timeStamp)
+                intent.putExtra("editable", true)
                 startActivity(intent)
 
 
