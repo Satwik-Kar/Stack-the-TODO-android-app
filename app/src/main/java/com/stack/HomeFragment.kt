@@ -114,12 +114,28 @@ public class HomeFragment : Fragment() {
             0, // Drag directions (not used in this case)
             ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT // Swipe directions
         ) {
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
                 return false // Not handling drag and drop in this example
+            }
+
+            override fun getMovementFlags(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int {
+                val position = viewHolder.adapterPosition
+
+
+                return if (todos[position].id == 123) {
+                    makeMovementFlags(0, 0)
+                } else {
+                    // Enable swipe for other items
+                    makeMovementFlags(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+                }
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
