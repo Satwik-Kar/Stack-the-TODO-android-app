@@ -17,7 +17,8 @@ class DatabaseHelper(context: Context?) :
                 + NOTE_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + NOTE_COLUMN_TITLE + " TEXT,"
                 + NOTE_COLUMN_CONTENT + " TEXT,"
-                + NOTE_COLUMN_TIMESTAMP + " TEXT"
+                + NOTE_COLUMN_TIMESTAMP_CREATED + " TEXT,"
+                + NOTE_COLUMN_TIMESTAMP_UPDATED + " TEXT"
                 + ")")
         db.execSQL(CREATE_NOTE_TABLE)
 
@@ -43,11 +44,6 @@ class DatabaseHelper(context: Context?) :
         // Check if User is Logged In
         get() = Companion.isUserLoggedIn
 
-    fun getCurrentFormattedTimestamp(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val date = Date()
-        return dateFormat.format(date)
-    }
 
     // Note CRUD Operations
     fun addNote(title: String?, content: String?) {
@@ -56,7 +52,8 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(NOTE_COLUMN_TITLE, title)
         values.put(NOTE_COLUMN_CONTENT, content)
-        values.put(NOTE_COLUMN_TIMESTAMP, getCurrentFormattedTimestamp())
+        values.put(NOTE_COLUMN_TIMESTAMP_CREATED, getCurrentFormattedTimestamp())
+        values.put(NOTE_COLUMN_TIMESTAMP_UPDATED, getCurrentFormattedTimestamp())
         db.insert(TABLE_NOTE, null, values)
         db.close()
     }
@@ -75,7 +72,7 @@ class DatabaseHelper(context: Context?) :
         val values = ContentValues()
         values.put(NOTE_COLUMN_TITLE, title)
         values.put(NOTE_COLUMN_CONTENT, content)
-        values.put(NOTE_COLUMN_TIMESTAMP, getCurrentFormattedTimestamp())
+        values.put(NOTE_COLUMN_TIMESTAMP_UPDATED, getCurrentFormattedTimestamp())
         db.update(TABLE_NOTE, values, NOTE_COLUMN_ID + " = ?", arrayOf(id.toString()))
         db.close()
     }
@@ -136,7 +133,8 @@ class DatabaseHelper(context: Context?) :
         const val NOTE_COLUMN_ID = "id"
         const val NOTE_COLUMN_TITLE = "title"
         const val NOTE_COLUMN_CONTENT = "content"
-        const val NOTE_COLUMN_TIMESTAMP = "time_stamp"
+        const val NOTE_COLUMN_TIMESTAMP_CREATED = "time_stamp_created"
+        const val NOTE_COLUMN_TIMESTAMP_UPDATED = "time_stamp_updated"
 
         // Todo Table
         const val TABLE_TODO = "todo_table"
@@ -151,6 +149,12 @@ class DatabaseHelper(context: Context?) :
         // Set User Login Status
         fun setUserLoggedIn(isLoggedIn: Boolean) {
             isUserLoggedIn = isLoggedIn
+        }
+
+        fun getCurrentFormattedTimestamp(): String {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val date = Date()
+            return dateFormat.format(date)
         }
     }
 }
