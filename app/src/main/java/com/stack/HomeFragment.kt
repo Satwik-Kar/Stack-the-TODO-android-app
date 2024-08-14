@@ -279,28 +279,29 @@ public class HomeFragment : Fragment() {
 
         if (notesCursor != null) {
             if (notesCursor.moveToFirst()) {
-                if (notesCursor.moveToFirst()) {
-                    do { // Use ado-while loop to process all items, including the first
-                        val idIndex = notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_ID)
-                        val titleIndex =
-                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TITLE)
-                        val contentIndex =
-                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_CONTENT)
-                        val timestampIndex =
-                            notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TIMESTAMP)
 
-                        val id = notesCursor.getInt(idIndex)
-                        val title = notesCursor.getString(titleIndex)
-                        val content = notesCursor.getString(contentIndex)
-                        val timestamp = notesCursor.getString(timestampIndex)
-                        Log.e("TAG", "onViewCreated: $id")
+                do { // Use ado-while loop to process all items, including the first
+                    val idIndex = notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_ID)
+                    val titleIndex =
+                        notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TITLE)
+                    val contentIndex =
+                        notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_CONTENT)
+                    val timestampIndexCreated =
+                        notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TIMESTAMP_CREATED)
+                    val timestampIndexUpdated =
+                        notesCursor.getColumnIndex(DatabaseHelper.NOTE_COLUMN_TIMESTAMP_UPDATED)
+                    val id = notesCursor.getInt(idIndex)
+                    val title = notesCursor.getString(titleIndex)
+                    val content = notesCursor.getString(contentIndex)
+                    val timestampCreated = notesCursor.getString(timestampIndexCreated)
+                    val timestampUpdated = notesCursor.getString(timestampIndexUpdated)
+                    Log.e("TAG", "onViewCreated: $id")
 
-                        notes.add(Note(id, title, content, timestamp))
+                    notes.add(Note(id, title, content, timestampCreated, timestampUpdated))
 
-                    } while (notesCursor.moveToNext())
-                    notes.sort()
-                    noteAdapter.notifyDataSetChanged()
-                }
+                } while (notesCursor.moveToNext())
+                notes.sort()
+                noteAdapter.notifyDataSetChanged()
 
 
             } else {
@@ -309,7 +310,8 @@ public class HomeFragment : Fragment() {
                         123,
                         getString(R.string.demoNoteTitle),
                         getString(R.string.demoNoteContent),
-                        "timestamp"
+                        DatabaseHelper.getCurrentFormattedTimestamp(),
+                        DatabaseHelper.getCurrentFormattedTimestamp()
                     )
                 )
                 noteAdapter.notifyDataSetChanged()
@@ -349,7 +351,7 @@ public class HomeFragment : Fragment() {
                         123,
                         getString(R.string.demoTodoTask),
                         Todo.STATUS_DONE,
-                        getString(R.string.demoTodoDateTime)
+                        DatabaseHelper.getCurrentFormattedTimestamp()
                     )
                 )
                 todoAdapter.notifyDataSetChanged()
@@ -486,6 +488,7 @@ public class HomeFragment : Fragment() {
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title: TextView = itemView.findViewById(R.id.note_title)
+        val editedText: TextView = itemView.findViewById(R.id.edited_text)
         val content: TextView = itemView.findViewById(R.id.note_content)
         val card: CardView = itemView.findViewById(R.id.TODO)
         val constraintLayout = itemView.findViewById<ConstraintLayout>(R.id.constraint)
@@ -530,14 +533,18 @@ public class HomeFragment : Fragment() {
 
             }
             holder.content.text = item.content
+            holder.editedText.text = "Edited • ${formatTimestamp(item.timeStampUpdated)}"
             holder.card.setOnClickListener {
-                val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
-                intent.putExtra("note_id", item.id)
-                intent.putExtra("note_content", item.content)
-                intent.putExtra("note_title", item.title)
-                intent.putExtra("note_timestamp", item.timeStamp)
-                intent.putExtra("editable", true)
-                startActivity(intent)
+                if (item.id != 123) {
+                    val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
+                    intent.putExtra("note_id", item.id)
+                    intent.putExtra("note_content", item.content)
+                    intent.putExtra("note_title", item.title)
+                    intent.putExtra("note_timestamp_created", item.timeStampCreated)
+                    intent.putExtra("note_timestamp_updated", item.timeStampUpdated)
+                    intent.putExtra("editable", true)
+                    startActivity(intent)
+                }
 
 
             }
