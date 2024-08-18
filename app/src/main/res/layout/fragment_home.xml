@@ -23,6 +23,7 @@
             android:text="Notes"
             android:textColor="@color/textColor"
             android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/notesRecyclerView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -32,7 +33,7 @@
             android:layout_height="250sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textVie" />
+            app:layout_constraintTop_toBottomOf="@+id/delete" />
 
         <TextView
             android:id="@+id/editTextText"
@@ -69,7 +70,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+            app:layout_constraintTop_toBottomOf="@+id/filter_all" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_main"
@@ -148,6 +149,28 @@
             app:layout_constraintBottom_toBottomOf="@+id/filter_done"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/filter_done" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:clickable="true" android:visibility="invisible"
+            android:src="@drawable/baseline_delete_outline_24"
+            app:backgroundTint="#E65757"
+            app:fabCustomSize="39dp"
+            app:layout_constraintEnd_toStartOf="@+id/archieve"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/archieve" android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/baseline_archive_24"
+            app:fabCustomSize="39dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

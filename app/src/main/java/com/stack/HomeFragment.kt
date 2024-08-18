@@ -19,6 +19,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -37,6 +38,10 @@ import java.util.Locale
 
 
 public class HomeFragment : Fragment() {
+    private var selected: ArrayList<CardView> = ArrayList()
+    private var selectedItems: ArrayList<Note> = ArrayList()
+    private lateinit var drawable: Drawable
+
     private lateinit var fabMain: FloatingActionButton
     private lateinit var fabAddNote: ExtendedFloatingActionButton
     private lateinit var fabAddTodo: ExtendedFloatingActionButton
@@ -49,6 +54,8 @@ public class HomeFragment : Fragment() {
     private lateinit var notes: ArrayList<Note>
 
     private var isFabOpen = false
+    private var isSelected = false
+
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
     private lateinit var rotateForward: Animation
@@ -57,6 +64,9 @@ public class HomeFragment : Fragment() {
     private lateinit var todosRecyclerView: RecyclerView
     private lateinit var todoAdapter: TodoAdapter
     private lateinit var noteAdapter: NoteAdapter
+
+    private lateinit var deleteNote: FloatingActionButton
+    private lateinit var archiveNote: FloatingActionButton
 
     override fun onResume() {
         super.onResume()
@@ -77,6 +87,8 @@ public class HomeFragment : Fragment() {
         filterAll = view.findViewById(R.id.filter_all)
         filterAll.setBackgroundColor(resources.getColor(R.color.primary))
         filterAll.setTextColor(resources.getColor(android.R.color.white))
+        deleteNote = view.findViewById(R.id.delete)
+        archiveNote = view.findViewById(R.id.archieve)
 
         notesRecyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
         val layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
@@ -144,7 +156,11 @@ public class HomeFragment : Fragment() {
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
 
+                        val db = DatabaseHelper(view.context)
+                        val todo = todos[position]
+                        db.deleteTodo(todo.id)
                         todoAdapter.notifyItemRemoved(position)
+                        refreshLayout()
                     }
 
                     ItemTouchHelper.RIGHT -> {
@@ -275,6 +291,19 @@ public class HomeFragment : Fragment() {
             filterDone.setTextColor(resources.getColor(android.R.color.black))
             filterPending.setBackgroundColor(resources.getColor(R.color.primary))
             filterPending.setTextColor(resources.getColor(android.R.color.white))
+        }
+        deleteNote.setOnClickListener {
+
+            val db = DatabaseHelper(view.context)
+            DatabaseHelper.setUserLoggedIn(true)
+            for (selectedItem in selectedItems) {
+                db.deleteNote(selectedItem.id)
+            }
+            refreshLayout()
+            deleteNote.visibility = View.INVISIBLE
+            archiveNote.visibility = View.INVISIBLE
+
+
         }
 
 
@@ -527,6 +556,7 @@ public class HomeFragment : Fragment() {
         override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
 
             val item = itemList[position]
+
             if (item.title.isNotEmpty()) {
                 holder.title.text = item.title
 
@@ -552,18 +582,57 @@ public class HomeFragment : Fragment() {
             holder.editedText.text = "Edited • ${formatTimestamp(item.timeStampUpdated)}"
             holder.card.setOnClickListener {
                 if (item.id != 123) {
-                    val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
-                    intent.putExtra("note_id", item.id)
-                    intent.putExtra("note_content", item.content)
-                    intent.putExtra("note_title", item.title)
-                    intent.putExtra("note_timestamp_created", item.timeStampCreated)
-                    intent.putExtra("note_timestamp_updated", item.timeStampUpdated)
-                    intent.putExtra("editable", true)
-                    startActivity(intent)
+                    if (!isSelected) {
+                        val intent = Intent(holder.itemView.context, EditNoteActivity::class.java)
+                        intent.putExtra("note_id", item.id)
+                        intent.putExtra("note_content", item.content)
+                        intent.putExtra("note_title", item.title)
+                        intent.putExtra("note_timestamp_created", item.timeStampCreated)
+                        intent.putExtra("note_timestamp_updated", item.timeStampUpdated)
+                        intent.putExtra("editable", true)
+                        startActivity(intent)
+                    } else {
+                        if (selected.contains(holder.card)) {
+                            holder.card.setBackgroundDrawable(drawable)
+                            selected.remove(holder.card)
+                            selectedItems.remove(item)
+                            if (selected.size == 0) {
+                                isSelected = false
+                                archiveNote.visibility = View.INVISIBLE
+                                deleteNote.visibility = View.INVISIBLE
+
+                            }
+
+                        } else if (!selected.contains(holder.card)) {
+                            holder.card.setBackgroundResource(R.drawable.cardview_border)
+                            selected.add(holder.card)
+                            selectedItems.add(item)
+
+                        }
+
+
+                    }
+
                 }
 
 
             }
+            holder.card.setOnLongClickListener(View.OnLongClickListener {
+                isSelected = true
+                drawable = holder.card.background
+                selected.add(holder.card)
+                selectedItems.add(item)
+
+                holder.card.setBackgroundResource(R.drawable.cardview_border)
+                archiveNote.visibility = View.VISIBLE
+                deleteNote.visibility = View.VISIBLE
+
+
+                Toast.makeText(requireView().context, "Hold", Toast.LENGTH_SHORT).show()
+
+                return@OnLongClickListener true
+
+            })
 
         }
 
